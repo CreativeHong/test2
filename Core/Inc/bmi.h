@@ -16,13 +16,13 @@ struct IMU {
 };
 
 // 全局变量声明
-extern uint8_t raw_range;
+extern uint8_t raw_range[2];
 extern uint8_t rx_acc_data[7];
 extern uint8_t rx_gyro_data[6];
 extern struct IMU imu;
 #endif //DEMO5_BMI_H
 
-uint8_t raw_range;
+uint8_t raw_range[2];
 uint8_t rx_acc_data[7];
 uint8_t rx_gyro_data[6];
 struct IMU imu;

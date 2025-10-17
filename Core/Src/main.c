@@ -58,9 +58,9 @@ void bmi088_init(void);
 /* USER CODE BEGIN 0 */
 void acc_calculate(){
   // 1. 设置/读取acc0x41寄存器中的量程range参数，并换算为量程系数
-  bmi088_accel_read_reg(0x41, &raw_range, 1);
+  bmi088_accel_read_reg(0x41, raw_range, 2);
   float accel_range_factor;
-  switch(raw_range & 0x03) {  // 只考虑最低两位
+  switch(raw_range[1] & 0x03) {  // 只考虑最低两位
     case 0x00:  // ±3g
       accel_range_factor = 3.0f * 9.81f / 32768.0f;
       break;
@@ -80,8 +80,11 @@ void acc_calculate(){
 
   // 3. 用量程系数将原始数据转换为常用单位
   int16_t raw_acc_x = (int16_t)((rx_acc_data[2] << 8) | rx_acc_data[1]);
+  if (raw_acc_x > 32767) raw_acc_x -= 65536;
   int16_t raw_acc_y = (int16_t)((rx_acc_data[4] << 8) | rx_acc_data[3]);
+  if (raw_acc_y > 32767) raw_acc_y -= 65536;
   int16_t raw_acc_z = (int16_t)((rx_acc_data[6] << 8) | rx_acc_data[5]);
+  if (raw_acc_z > 32767) raw_acc_z -= 65536;
 
   float acc_x = raw_acc_x * accel_range_factor;
   float acc_y = raw_acc_y * accel_range_factor;
@@ -177,10 +180,17 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    // 在此处调用读取函数
-    acc_calculate();   // 读取加速度数据
-    gyro_calculate();  // 读取陀螺仪数据
+
+
     /* USER CODE BEGIN 3 */
+    // 在此处调用读取函数// 在main()函数while(1)中增加节流机制
+    static uint32_t last_tick = 0;
+      if(HAL_GetTick() - last_tick >= 10){ // 每10ms读取一次
+        acc_calculate();
+        gyro_calculate();
+        last_tick = HAL_GetTick();
+}
+
 
     }
 
